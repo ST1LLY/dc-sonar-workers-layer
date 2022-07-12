@@ -40,6 +40,10 @@ media
 
 # File-based project format
 *.iws
+logs/*
+!logs/.gitkeep
+configs/*
+!configs/settings_blank.conf
 
 # IntelliJ
 out/
