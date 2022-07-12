@@ -103,7 +103,7 @@ if __name__ == '__main__':
         channel.basic_consume(queue='wait_dumping_ntlm', on_message_callback=rmq_callback)
         channel.start_consuming()
     except Exception as e:
-        logger.error('Ошибка', exc_info=sys.exc_info())
+        logger.error('Error', exc_info=sys.exc_info())
     finally:
         if rmq_conn is not None:
             rmq_conn.close()
