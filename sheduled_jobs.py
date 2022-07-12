@@ -84,7 +84,6 @@ def ntlm_dump_status_checker() -> None:
                     with Session() as session:
                         session.delete(ntlm_dump_session)
                         session.commit()
-                    ntlm_scrut_i.technical_clean_dump(ntlm_dump_session.session_name)
 
                     try:
                         data = ntlm_scrut_i.brute_ntlm_run(ntlm_dump_status['hashes_file_path'])
@@ -175,7 +174,6 @@ def ntlm_dump_status_checker() -> None:
                 with Session() as session:
                     session.delete(ntlm_dump_session)
                     session.commit()
-                ntlm_scrut_i.technical_clean_dump(ntlm_dump_session.session_name)
 
                 raise Exception(f"Unknown ntlm_dump_status['status']: {ntlm_dump_status['status']}")
             except Exception as e:
@@ -199,7 +197,6 @@ def ntlm_dump_status_checker() -> None:
                 with Session() as session:
                     session.delete(ntlm_dump_session)
                     session.commit()
-                ntlm_scrut_i.technical_clean_dump(ntlm_dump_session.session_name)
 
     except Exception:
 
@@ -311,7 +308,6 @@ def ntlm_brute_status_checker() -> None:
                         with Session() as session:
                             session.delete(ntlm_brute_session)
                             session.commit()
-                        ntlm_scrut_i.technical_clean_brute(ntlm_brute_session.session_name)
 
                         continue
 
@@ -338,7 +334,6 @@ def ntlm_brute_status_checker() -> None:
                         with Session() as session:
                             session.delete(ntlm_brute_session)
                             session.commit()
-                        ntlm_scrut_i.technical_clean_brute(ntlm_brute_session.session_name)
                         continue
                     if re_run_info['status'] == 'success':
                         # It will be rechecked during futher running
@@ -367,7 +362,6 @@ def ntlm_brute_status_checker() -> None:
                 with Session() as session:
                     session.delete(ntlm_brute_session)
                     session.commit()
-                ntlm_scrut_i.technical_clean_brute(ntlm_brute_session.session_name)
 
     except Exception:
         logger.error('Error', exc_info=sys.exc_info())
