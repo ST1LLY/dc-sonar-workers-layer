@@ -1,9 +1,12 @@
+import logging
+import os
 from typing import Any
+from urllib.parse import urljoin
 
 import requests
-import logging
-from urllib.parse import urljoin
 from requests import Response
+
+from enviroment import TEMP_DIR
 
 
 class NTLMScrutInterface:
@@ -63,3 +66,12 @@ class NTLMScrutInterface:
 
     def technical_clean_brute(self, session_name: str) -> None:
         self.__send_get(urljoin(self.__base_url, f'technical/clean-brute?session_name={session_name}'))
+
+    def download_ntlm_hashes(self, file_path: str) -> str:
+        output_file_path = os.path.join(TEMP_DIR, os.path.basename(file_path))
+        with open(output_file_path, 'wb') as f:
+            resp = requests.get(
+                urljoin(self.__base_url, f'dump-ntlm/download-hashes?file_path={file_path}'), verify=False
+            )
+            f.write(resp.content)
+        return output_file_path

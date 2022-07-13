@@ -1,4 +1,11 @@
 .idea
+logs/*
+!logs/.gitkeep
+temp/*
+!temp/.gitkeep
+configs/*
+!configs/settings_blank.conf
+test.py
 
 # Django #
 *.log
@@ -40,10 +47,6 @@ media
 
 # File-based project format
 *.iws
-logs/*
-!logs/.gitkeep
-configs/*
-!configs/settings_blank.conf
 
 # IntelliJ
 out/

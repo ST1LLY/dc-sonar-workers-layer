@@ -4,10 +4,10 @@ import sys
 from apscheduler.schedulers.background import BackgroundScheduler
 import pika
 import modules.support_functions as sup_f
-from enviroment import LOGS_DIR, DATABASE_URI, LOG_CONFIG, NTLM_SCRUT_CONFIG, RMQ_CONFIG
-from models import NTLMDumpSession, NTLMBruteSession
+from enviroment import LOGS_DIR, DATABASE_URI, LOG_CONFIG, NTLM_SCRUT_CONFIG, RMQ_CONFIG, TEMP_DIR
+from models import NTLMDumpSession, NTLMBruteSession, NTLMDumpHash
 import time
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from modules.ntlm_scrut_interface import NTLMScrutInterface
@@ -116,6 +116,27 @@ def ntlm_dump_status_checker() -> None:
                                 delivery_mode=2,  # make message persistent
                             ),
                         )
+                        hashes_file_path = ntlm_scrut_i.download_ntlm_hashes(ntlm_dump_status['hashes_file_path'])
+                        logger.info(f'hashes_file_path: {hashes_file_path}')
+                        with open(hashes_file_path, 'r', encoding='UTF-8') as file:
+                            with Session() as session:
+                                stmt = delete(NTLMDumpHash).where(NTLMDumpHash.domain_pk == ntlm_dump_session.domain_pk)
+                                session.execute(stmt)
+                                while line := file.readline():
+                                    try:
+                                        line_data = line.split(':')
+                                        record = NTLMDumpHash(
+                                            domain_pk=ntlm_dump_session.domain_pk,
+                                            user_login=line_data[0],
+                                            user_ntlm_hash=f'{line_data[2]}:{line_data[3]}',
+                                        )
+                                        session.add(record)
+                                    except Exception:
+                                        logger.error(f'Error paring line {line}', exc_info=sys.exc_info())
+                                        continue
+                                logger.info('session.commit()')
+                                session.commit()
+                        os.remove(hashes_file_path)
                         continue
                     except Exception as e:
                         logger.error('Error', exc_info=sys.exc_info())
@@ -153,6 +174,10 @@ def ntlm_dump_status_checker() -> None:
                             delivery_mode=2,  # make message persistent
                         ),
                     )
+                    with Session() as session:
+                        session.delete(ntlm_dump_session)
+                        session.commit()
+                    continue
 
                 if ntlm_dump_status['status'] == 'interrupted':
                     channel.basic_publish(
@@ -170,10 +195,10 @@ def ntlm_dump_status_checker() -> None:
                             delivery_mode=2,  # make message persistent
                         ),
                     )
-
-                with Session() as session:
-                    session.delete(ntlm_dump_session)
-                    session.commit()
+                    with Session() as session:
+                        session.delete(ntlm_dump_session)
+                        session.commit()
+                    continue
 
                 raise Exception(f"Unknown ntlm_dump_status['status']: {ntlm_dump_status['status']}")
             except Exception as e:
