@@ -1,3 +1,7 @@
+"""
+https://docs.sqlalchemy.org/en/14/orm/quickstart.html#declare-models
+"""
+# pylint: disable=missing-class-docstring
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -12,7 +16,8 @@ class NTLMDumpSession(Base):  # type: ignore
     domain_pk = Column(Integer, unique=True)
 
     def __repr__(self) -> str:
-        return f"<NTLMDumpSessions(session_name='{self.session_name}', domain_name='{self.domain_name}', domain_pk='{self.domain_pk}')>"
+        return f"<NTLMDumpSessions(session_name='{self.session_name}', domain_name='{self.domain_name}', " \
+               f"domain_pk='{self.domain_pk}')>"
 
 
 class NTLMBruteSession(Base):  # type: ignore
@@ -23,7 +28,8 @@ class NTLMBruteSession(Base):  # type: ignore
     domain_pk = Column(Integer, unique=True)
 
     def __repr__(self) -> str:
-        return f"<NTLMDumpSessions(session_name='{self.session_name}', domain_name='{self.domain_name}', domain_pk='{self.domain_pk}')>"
+        return f"<NTLMDumpSessions(session_name='{self.session_name}', domain_name='{self.domain_name}', " \
+               f"domain_pk='{self.domain_pk}')>"
 
 
 class NTLMDumpHash(Base):  # type: ignore
@@ -34,4 +40,5 @@ class NTLMDumpHash(Base):  # type: ignore
     user_ntlm_hash = Column(String)
 
     def __repr__(self) -> str:
-        return f"<NTLMBruteHash(domain_pk='{self.domain_pk}', user_login='{self.user_login}', user_pass_hash='{self.user_ntlm_hash}')>"
+        return f"<NTLMBruteHash(domain_pk='{self.domain_pk}', user_login='{self.user_login}', " \
+               f"user_pass_hash='{self.user_ntlm_hash}')>"

@@ -1,3 +1,8 @@
+"""
+The listener of wait_reused_pass_checking queue.
+Having received a message from the wait_reused_pass_checking queue, it performs getting the information of
+reused passwords accounts for the specific domain and returns it to the info_reused_pass_checking queue.
+"""
 import json
 import os
 import sys
@@ -20,18 +25,21 @@ logger = sup_f.init_custome_logger(
 )
 
 
-def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
-    rmq_conn = None
+def rmq_callback(current_channel: Any, method: Any, _: Any, body: Any) -> None:
+    """
+    The performer of the received message from the queue
+    """
+    rmq_c = None
     domain = {}
     try:
         logger.info('Working on a msg')
         msg = json.loads(body.decode('utf-8'))
-        logger.info(f'msg: {msg}')
+        logger.info('msg: %s', msg)
         domain = msg['domain']
-        rmq_conn = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
-        channel = rmq_conn.channel()
-        channel.queue_declare(queue='info_reused_pass_checking', durable=True)
-        channel.basic_publish(
+        rmq_c = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
+        reused_pass_info_ch = rmq_c.channel()
+        reused_pass_info_ch.queue_declare(queue='info_reused_pass_checking', durable=True)
+        reused_pass_info_ch.basic_publish(
             exchange='',
             routing_key='info_reused_pass_checking',
             body=sup_f.dict_to_json_bytes(
@@ -49,21 +57,21 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
         )
 
         engine = create_engine(DATABASE_URI)
-        Session = sessionmaker(engine)
+        engine_session_maker = sessionmaker(engine)
 
-        with Session() as session:
+        with engine_session_maker() as session:
             stmt_del = delete(NTLMDumpHash).where(~NTLMDumpHash.domain_pk.in_(msg['exist_domains_pk']))
             session.execute(stmt_del)
             session.commit()
 
-        with Session() as session:
+        with engine_session_maker() as session:
             stmt = text(
                 """
             with this_domain as (SELECT domain_pk, user_login, user_ntlm_hash
                 FROM public.ntlm_dump_hash where domain_pk = :id),
                 non_this_domain as (SELECT domain_pk, user_login, user_ntlm_hash
                 FROM public.ntlm_dump_hash where domain_pk <> :id)
-                select 
+                select
                     this_domain.domain_pk as domain_pk,
                     this_domain.user_login as user_login,
                     non_this_domain.domain_pk as reused_domain_pk,
@@ -74,7 +82,7 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
             )
             users = session.execute(stmt, {'id': domain['pk']})
 
-        channel.basic_publish(
+        reused_pass_info_ch.basic_publish(
             exchange='',
             routing_key='info_reused_pass_checking',
             body=sup_f.dict_to_json_bytes(
@@ -83,7 +91,7 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
                     'domain_name': domain['fields']['name'],
                     'status': 'FINISHED',
                     'error_desc': '',
-                    'users': tuple(dict(row._mapping) for row in users),
+                    'users': tuple(dict(row._mapping) for row in users),  # pylint: disable=protected-access
                 }
             ),
             properties=pika.BasicProperties(
@@ -91,13 +99,13 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
             ),
         )
 
-    except Exception as e:
+    except Exception as exc:
         logger.error('Error', exc_info=sys.exc_info())
         if domain:
-            rmq_conn = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
-            channel = rmq_conn.channel()
-            channel.queue_declare(queue='info_reused_pass_checking', durable=True)
-            channel.basic_publish(
+            rmq_c = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
+            reused_pass_info_ch = rmq_c.channel()
+            reused_pass_info_ch.queue_declare(queue='info_reused_pass_checking', durable=True)
+            reused_pass_info_ch.basic_publish(
                 exchange='',
                 routing_key='info_reused_pass_checking',
                 body=sup_f.dict_to_json_bytes(
@@ -105,7 +113,7 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
                         'domain_pk': domain['pk'],
                         'domain_name': domain['fields']['name'],
                         'status': 'ERROR',
-                        'error_desc': sup_f.get_error_text(e),
+                        'error_desc': sup_f.get_error_text(exc),
                         'users': [],
                     }
                 ),
@@ -114,22 +122,21 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
                 ),
             )
     finally:
-        if rmq_conn is not None:
-            rmq_conn.close()
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        if rmq_c is not None:
+            rmq_c.close()
+        current_channel.basic_ack(delivery_tag=method.delivery_tag)
 
 
 if __name__ == '__main__':
 
-    rmq_conn = None
+    rmq_conn = None   # pylint: disable=invalid-name
     try:
         rmq_conn = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
-        channel = rmq_conn.channel()
-
-        channel.queue_declare(queue='wait_reused_pass_checking', durable=True)
-        channel.basic_consume(queue='wait_reused_pass_checking', on_message_callback=rmq_callback)
-        channel.start_consuming()
-    except Exception as e:
+        reused_pass_wait_ch = rmq_conn.channel()
+        reused_pass_wait_ch.queue_declare(queue='wait_reused_pass_checking', durable=True)
+        reused_pass_wait_ch.basic_consume(queue='wait_reused_pass_checking', on_message_callback=rmq_callback)
+        reused_pass_wait_ch.start_consuming()
+    except Exception:
         logger.error('Error', exc_info=sys.exc_info())
     finally:
         if rmq_conn is not None:

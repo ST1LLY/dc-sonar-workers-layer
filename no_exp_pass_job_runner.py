@@ -1,3 +1,8 @@
+"""
+The listener of wait_no_exp_pass_checking queue.
+Having received a message from the wait_no_exp_pass_checking queue, it performs getting the information of
+no expired passwords accounts for the specific domain and returns it to the info_no_exp_pass_checking queue.
+"""
 import json
 import os
 import sys
@@ -19,18 +24,21 @@ logger = sup_f.init_custome_logger(
 )
 
 
-def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
-    rmq_conn = None
+def rmq_callback(current_ch: Any, method: Any, _: Any, body: Any) -> None:
+    """
+    The performer of the received message from the queue
+    """
+    rmq_c = None
     msg = {}
     try:
         logger.info('Working on a msg')
         msg = json.loads(body.decode('utf-8'))
-        logger.info(f'msg: {msg}')
+        logger.info('msg: %s', msg)
 
-        rmq_conn = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
-        channel = rmq_conn.channel()
-        channel.queue_declare(queue='info_no_exp_pass_checking', durable=True)
-        channel.basic_publish(
+        rmq_c = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
+        no_exp_pass_info_ch = rmq_c.channel()
+        no_exp_pass_info_ch.queue_declare(queue='info_no_exp_pass_checking', durable=True)
+        no_exp_pass_info_ch.basic_publish(
             exchange='',
             routing_key='info_no_exp_pass_checking',
             body=sup_f.dict_to_json_bytes(
@@ -58,7 +66,7 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
             for user in ad_interface.get_no_exp_pass_users()
         )
 
-        channel.basic_publish(
+        no_exp_pass_info_ch.basic_publish(
             exchange='',
             routing_key='info_no_exp_pass_checking',
             body=sup_f.dict_to_json_bytes(
@@ -75,13 +83,13 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
             ),
         )
 
-    except Exception as e:
+    except Exception as exc:
         logger.error('Error', exc_info=sys.exc_info())
         if msg:
-            rmq_conn = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
-            channel = rmq_conn.channel()
-            channel.queue_declare(queue='info_no_exp_pass_checking', durable=True)
-            channel.basic_publish(
+            rmq_c = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
+            no_exp_pass_info_ch = rmq_c.channel()
+            no_exp_pass_info_ch.queue_declare(queue='info_no_exp_pass_checking', durable=True)
+            no_exp_pass_info_ch.basic_publish(
                 exchange='',
                 routing_key='info_no_exp_pass_checking',
                 body=sup_f.dict_to_json_bytes(
@@ -89,7 +97,7 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
                         'domain_pk': msg['pk'],
                         'domain_name': msg['fields']['name'],
                         'status': 'ERROR',
-                        'error_desc': sup_f.get_error_text(e),
+                        'error_desc': sup_f.get_error_text(exc),
                         'users': [],
                     }
                 ),
@@ -98,22 +106,21 @@ def rmq_callback(ch: Any, method: Any, properties: Any, body: Any) -> None:
                 ),
             )
     finally:
-        if rmq_conn is not None:
-            rmq_conn.close()
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        if rmq_c is not None:
+            rmq_c.close()
+        current_ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 if __name__ == '__main__':
 
-    rmq_conn = None
+    rmq_conn = None   # pylint: disable=invalid-name
     try:
         rmq_conn = pika.BlockingConnection(pika.ConnectionParameters(**RMQ_CONFIG))
-        channel = rmq_conn.channel()
-
-        channel.queue_declare(queue='wait_no_exp_pass_checking', durable=True)
-        channel.basic_consume(queue='wait_no_exp_pass_checking', on_message_callback=rmq_callback)
-        channel.start_consuming()
-    except Exception as e:
+        no_exp_pass_wait_ch = rmq_conn.channel()
+        no_exp_pass_wait_ch.queue_declare(queue='wait_no_exp_pass_checking', durable=True)
+        no_exp_pass_wait_ch.basic_consume(queue='wait_no_exp_pass_checking', on_message_callback=rmq_callback)
+        no_exp_pass_wait_ch.start_consuming()
+    except Exception:
         logger.error('Error', exc_info=sys.exc_info())
     finally:
         if rmq_conn is not None:

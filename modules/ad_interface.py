@@ -1,3 +1,6 @@
+"""
+The module for interaction with AD
+"""
 import logging
 from typing import Any
 
@@ -7,6 +10,9 @@ from ldap.ldapobject import SimpleLDAPObject
 
 
 class ADInterface:
+    """
+    The class for communication with AD
+    """
     def __init__(self, hostname: str, base_dn: str, user_dn: str, password: str) -> None:
         self.__hostname = hostname
         self.__base_dn = base_dn
@@ -15,7 +21,7 @@ class ADInterface:
 
     def __init_connection(self) -> SimpleLDAPObject:
         connection = f'ldap://{self.__hostname}:3268'
-        logging.debug(f'Init ldap connection to {connection}')
+        logging.debug('Init ldap connection to %s', connection)
         ldap_conn = ldap.initialize(connection)
         ldap_conn.simple_bind_s(self.__user_dn, self.__password)
         return ldap_conn
@@ -35,11 +41,11 @@ class ADInterface:
         Returns:
             list[tuple[Any, Any, list[Any]]] | None: The result of searcging
         """
-        logging.debug(f'Search in AD {locals()}')
+        logging.debug('Search in AD %s', locals())
 
         ldap_conn = self.__init_connection()
 
-        search_scope = ldap.SCOPE_SUBTREE
+        search_scope = ldap.SCOPE_SUBTREE # pylint: disable=no-member
         cookie = ''
         page_size = 1000
         criticality = True
@@ -51,15 +57,21 @@ class ADInterface:
             first_pass = False
             msgid = ldap_conn.search_ext(base_dn, search_scope, search_filter, attrs, serverctrls=[pg_ctrl])
 
-            result_type, data, msgid, serverctrls = ldap_conn.result3(msgid)
+            _, data, msgid, serverctrls = ldap_conn.result3(msgid)
             pg_ctrl.cookie = serverctrls[0].cookie
             results.extend(data)
         return results
 
     def get_users(self) -> list[tuple[Any, Any, list[Any]]]:
+        """
+        Get all users
+        """
         return self.__search_in_ad(self.__base_dn, 'objectClass=user')
 
     def get_no_exp_pass_users(self) -> list[Any]:
+        """
+        Get users with no expired passwords
+        """
         return self.__search_in_ad(
             self.__base_dn,
             '(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=65536))',
