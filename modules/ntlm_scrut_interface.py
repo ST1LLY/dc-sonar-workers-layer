@@ -1,5 +1,8 @@
 """
 The module for interaction with ntlm-scrutinizer's API
+
+Author:
+    Konstantin S. (https://github.com/ST1LLY)
 """
 import logging
 import os

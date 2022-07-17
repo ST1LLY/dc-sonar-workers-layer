@@ -2,6 +2,9 @@
 The listener of wait_dumping_ntlm queue.
 Having received a message from the wait_dumping_ntlm queue, it runs the instance of
 the process of dumping NTLM-hashes for the specific domain and returns it to the info_dumping_ntlm queue.
+
+Author:
+    Konstantin S. (https://github.com/ST1LLY)
 """
 import json
 import os

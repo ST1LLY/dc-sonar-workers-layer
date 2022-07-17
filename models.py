@@ -1,5 +1,8 @@
 """
 https://docs.sqlalchemy.org/en/14/orm/quickstart.html#declare-models
+
+Author:
+    Konstantin S. (https://github.com/ST1LLY)
 """
 # pylint: disable=missing-class-docstring
 from sqlalchemy import Column, Integer, String

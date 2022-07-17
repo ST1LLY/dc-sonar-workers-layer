@@ -2,6 +2,9 @@
 The listener of wait_reused_pass_checking queue.
 Having received a message from the wait_reused_pass_checking queue, it performs getting the information of
 reused passwords accounts for the specific domain and returns it to the info_reused_pass_checking queue.
+
+Author:
+    Konstantin S. (https://github.com/ST1LLY)
 """
 import json
 import os

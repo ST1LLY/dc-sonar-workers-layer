@@ -1,5 +1,8 @@
 """
 Shared environment constants for app
+
+Author:
+    Konstantin S. (https://github.com/ST1LLY)
 """
 import os
 import modules.support_functions as sup_f

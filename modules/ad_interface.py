@@ -1,5 +1,8 @@
 """
 The module for interaction with AD
+
+Author:
+    Konstantin S. (https://github.com/ST1LLY)
 """
 import logging
 from typing import Any

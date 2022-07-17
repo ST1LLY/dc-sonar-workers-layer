@@ -1,6 +1,9 @@
 """
 The module contains jobs run by sheduler
 
+Author:
+    Konstantin S. (https://github.com/ST1LLY)
+
 TODO: refactor to be more concise
 """
 import os
