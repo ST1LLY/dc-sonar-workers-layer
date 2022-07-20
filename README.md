@@ -1,6 +1,6 @@
 # DC Sonar Workers Layer
 
-It's the part of the [dc-sonar](https://github.com/ST1LLY/dc-sonar) project
+It is part of the [dc-sonar](https://github.com/ST1LLY/dc-sonar) project.
 
 ## Deploy for development
 
@@ -12,7 +12,13 @@ git clone https://github.com/ST1LLY/dc-sonar-workers-layer.git
 
 ### Windows
 
-Open Powershell, cd to created dc-sonar-workers-layer folder
+Open Powershell.
+
+Go to the created dc-sonar-workers-layer folder:
+
+```
+cd {YOUR_PATH}
+```
 
 Create Python virtual environment
 
@@ -20,19 +26,19 @@ Create Python virtual environment
 &"C:\Program Files\Python310\python.exe" -m venv venv
 ```
 
-Active venv
+Active created venv:
 
 ```
 .\venv\Scripts\Activate.ps1
 ```
 
-Install python_ldap‑3.4.0‑cp310‑cp310‑win_amd64.whl
+Install the python_ldap‑3.4.0‑cp310‑cp310‑win_amd64.whl package:
 
 ```
 pip install .\windows_whl\python_ldap-3.4.0-cp310-cp310-win_amd64.whl
 ```
 
-Install pip packages
+Install pip packages:
 
 ```
 pip install -r .\requirements.txt
@@ -40,33 +46,33 @@ pip install -r .\requirements.txt
 
 ### Ubuntu
 
-Go to folder where directory with source is located
+Go to the folder where the directory with the source is located.
 
-Deactivate previous venv if uses
+Deactivate the previous venv if it uses:
 
 ```shell
 deactivate
 ```
 
-Create venv
+Create venv:
 
 ```shell
 python3.10 -m venv venv-workers-layer
 ```
 
-Activate venv
+Activate created venv:
 
 ```shell
 source venv-workers-layer/bin/activate
 ```
 
-Install dependencies
+Install dependencies:
 
 ```shell
 pip install -r dc-sonar-workers-layer/requirements.txt
 ```
 
-Deactivate venv
+Deactivate venv:
 
 ```
 deactivate
@@ -74,13 +80,13 @@ deactivate
 
 ### Config
 
-Copy `configs/settings_blank.conf` to `configs/settings.conf`
+Copy `configs/settings_blank.conf` to `configs/settings.conf`.
 
-Fulfil
+Set the params:
 
-`APP` section param `aes_256_key` for decryption and  encryption saved passed of acc have been bruted
+The param `aes_256_key` in `APP` section is being used for decryption and encryption saved passed of accounts have been bruted.
 
-`DB` section for connection to `back_workers_db`
+The `DB` section is being used for connection to `back_workers_db`.
 
 Example:
 
@@ -105,24 +111,26 @@ port=5432
 level=INFO
 ```
 
-Before the first run init models
+Before the first run, it is needed to init models.
 
-Open terminal
+Open terminal.
+
+Activate venv and go to the project directory:
 
 ```shell
 source venv-workers-layer/bin/activate
 cd dc-sonar-workers-layer/
 ```
 
-Init scheduled jobs for the first connection to DB
+Init scheduled jobs for the first connection to DB:
 
 ```shell
 python sheduled_jobs.py
 ```
 
-Press CTRL+C to stop as see  "Scheduler started"
+Press CTRL+C to stop after the log string shows  "Scheduler started".
 
-Run alembic migrations
+Run alembic migrations:
 
 ```shell
 alembic upgrade heads
@@ -130,9 +138,9 @@ alembic upgrade heads
 
 ### Run
 
-Open terminal
+Open terminal.
 
-Execute commands for running ntlm_dump_job_runner
+Execute commands for running ntlm_dump_job_runner:
 
 ```
 source venv-workers-layer/bin/activate
@@ -140,9 +148,9 @@ cd dc-sonar-workers-layer/
 python ntlm_dump_job_runner.py
 ```
 
-Open terminal
+Open terminal.
 
-Execute commands for running sheduled_jobs
+Execute commands for running sheduled_jobs:
 
 ```
 source venv-workers-layer/bin/activate
@@ -150,9 +158,9 @@ cd dc-sonar-workers-layer/
 python sheduled_jobs.py
 ```
 
-Open terminal
+Open terminal.
 
-Execute commands for running no_exp_pass_job_runner
+Execute commands for running no_exp_pass_job_runner:
 
 ```
 source venv-workers-layer/bin/activate
@@ -160,9 +168,9 @@ cd dc-sonar-workers-layer/
 python no_exp_pass_job_runner.py
 ```
 
-Open terminal
+Open terminal.
 
-Execute commands for running reused_pass_job_runner
+Execute commands for running reused_pass_job_runner:
 
 ```
 source venv-workers-layer/bin/activate
@@ -172,8 +180,9 @@ python reused_pass_job_runner.py
 
 ## PyCharm settings
 
-See common settings in [common PyCharm settings](https://github.com/ST1LLY/dc-sonar#pycharm-settings)
+See common settings in [common PyCharm settings](https://github.com/ST1LLY/dc-sonar#pycharm-settings).
 
 ### Pylint
 
-Arguments: `--max-line-length=119 --disable=too-few-public-methods,import-error,import-outside-toplevel,broad-except,wrong-import-position,duplicate-code`
+Arguments: `--max-line-length=119 --disable=too-few-public-methods,import-error,import-outside-toplevel,broad-except,wrong-import-position,duplicate-code`.
+
