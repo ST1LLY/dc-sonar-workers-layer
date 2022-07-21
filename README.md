@@ -178,11 +178,3 @@ cd dc-sonar-workers-layer/
 python reused_pass_job_runner.py
 ```
 
-## PyCharm settings
-
-See common settings in [common PyCharm settings](https://github.com/ST1LLY/dc-sonar#pycharm-settings).
-
-### Pylint
-
-Arguments: `--max-line-length=119 --disable=too-few-public-methods,import-error,import-outside-toplevel,broad-except,wrong-import-position,duplicate-code`.
-
