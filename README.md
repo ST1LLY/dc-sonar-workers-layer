@@ -122,14 +122,6 @@ source venv-workers-layer/bin/activate
 cd dc-sonar-workers-layer/
 ```
 
-Init scheduled jobs for the first connection to DB:
-
-```shell
-python sheduled_jobs.py
-```
-
-Press CTRL+C to stop after the log string shows  "Scheduler started".
-
 Run alembic migrations:
 
 ```shell
