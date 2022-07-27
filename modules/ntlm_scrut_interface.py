@@ -97,8 +97,9 @@ class NTLMScrutInterface:
         """
         output_file_path = os.path.join(TEMP_DIR, os.path.basename(file_path))
         with open(output_file_path, 'wb') as file:
-            resp = requests.get(
-                urljoin(self.__base_url, f'dump-ntlm/download-hashes?file_path={file_path}'), verify=False
-            )
+            url = urljoin(self.__base_url, f'dump-ntlm/download-hashes?file_path={file_path}')
+            resp = requests.get(url, verify=False)
+            if resp.status_code != 200:
+                raise Exception(f'url:{url} resp:{resp}')
             file.write(resp.content)
         return output_file_path
