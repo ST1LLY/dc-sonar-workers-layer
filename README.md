@@ -169,9 +169,3 @@ source venv-workers-layer/bin/activate
 cd dc-sonar-workers-layer/
 python reused_pass_job_runner.py
 ```
-
-## Versions
-
-### 2022.7.27-1
-
-The initial version.
